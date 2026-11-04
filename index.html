@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ale.kseev — Graphic Designer</title>
+<meta name="description" content="Graphic design portfolio: posters, branding and visuals that spill off the grid.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b09;
+    --bg-2: #0c1712;
+    --green-deep: #0f2a1e;
+    --green: #1e5a3f;
+    --accent: #8fe3b4;
+    --accent-2: #c8f5d9;
+    --text: #e8f2ec;
+    --muted: #8aa597;
+    --radius: 28px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Manrope", system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ===== КЛЯКСЫ НА ФОНЕ ===== */
+  .blobs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .blob {
+    position: absolute;
+    filter: blur(2px);
+    opacity: .9;
+    animation: morph 18s ease-in-out infinite, drift 26s ease-in-out infinite;
+  }
+  .blob.b1 { width: 520px; height: 520px; top: -140px; left: -160px;
+    background: radial-gradient(circle at 30% 30%, #2a7a55, #0f2a1e 70%); }
+  .blob.b2 { width: 420px; height: 420px; bottom: -120px; right: -120px;
+    background: radial-gradient(circle at 60% 40%, #1e5a3f, #0a1f15 70%);
+    animation-delay: -6s, -10s; }
+  .blob.b3 { width: 260px; height: 260px; top: 45%; left: 55%;
+    background: radial-gradient(circle at 40% 40%, #8fe3b4, #1e5a3f 75%);
+    opacity: .35; animation-delay: -12s, -4s; }
+  .blob.b4 { width: 180px; height: 180px; top: 18%; right: 12%;
+    background: radial-gradient(circle at 50% 50%, #3d9a6c, #0f2a1e 80%);
+    opacity: .6; animation-delay: -3s, -16s; }
+
+  @keyframes morph {
+    0%,100% { border-radius: 62% 38% 46% 54% / 55% 44% 56% 45%; }
+    25%     { border-radius: 40% 60% 63% 37% / 40% 58% 42% 60%; }
+    50%     { border-radius: 55% 45% 35% 65% / 62% 35% 65% 38%; }
+    75%     { border-radius: 35% 65% 55% 45% / 45% 62% 38% 55%; }
+  }
+  @keyframes drift {
+    0%,100% { transform: translate(0,0) rotate(0deg); }
+    33%     { transform: translate(40px,-30px) rotate(25deg); }
+    66%     { transform: translate(-30px,35px) rotate(-15deg); }
+  }
+
+  /* лёгкое зерно поверх фона */
+  .grain {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .container { width: min(1120px, 90vw); margin: 0 auto; }
+
+  /* ===== ШАПКА ===== */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(14px);
+    background: rgba(7, 11, 9, .55);
+    border-bottom: 1px solid rgba(143, 227, 180, .08);
+  }
+  .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+  .logo { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 20px; letter-spacing: .5px; }
+  .logo span { color: var(--accent); }
+  .nav ul { display: flex; gap: 28px; list-style: none; font-size: 15px; color: var(--muted); }
+  .nav ul a:hover { color: var(--accent); }
+
+  /* ===== ПЕРВЫЙ ЭКРАН ===== */
+  .hero { min-height: 88vh; display: flex; align-items: center; padding: 60px 0; }
+  .hero .tag {
+    display: inline-block; padding: 8px 18px; margin-bottom: 26px;
+    border: 1px solid rgba(143, 227, 180, .3); border-radius: 999px;
+    color: var(--accent); font-size: 14px;
+  }
+  .hero h1 {
+    font-family: "Unbounded", sans-serif; font-weight: 800;
+    font-size: clamp(40px, 7vw, 92px); line-height: 1.02; letter-spacing: -1px;
+    max-width: 900px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), #4fbf87);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { margin-top: 26px; max-width: 520px; color: var(--muted); font-size: 18px; }
+  .hero-actions { margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* ===== КНОПКИ ===== */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 16px 28px; border-radius: 999px;
+    font-weight: 700; font-size: 16px;
+    transition: transform .25s, background .25s, color .25s, box-shadow .25s;
+  }
+  .btn svg { width: 20px; height: 20px; }
+  .btn-primary { background: var(--accent); color: #062014; }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px -8px rgba(143,227,180,.55); }
+  .btn-ghost { border: 1px solid rgba(143,227,180,.35); color: var(--text); }
+  .btn-ghost:hover { background: rgba(143,227,180,.1); transform: translateY(-3px); }
+
+  /* ===== СЕКЦИИ ===== */
+  section { padding: 100px 0; }
+  .section-title {
+    font-family: "Unbounded", sans-serif; font-weight: 600;
+    font-size: clamp(30px, 4vw, 48px); margin-bottom: 14px;
+  }
+  .section-sub { color: var(--muted); margin-bottom: 50px; max-width: 520px; }
+
+  /* ===== КАРУСЕЛЬ ===== */
+  .carousel { position: relative; }
+  .track-wrap { overflow: hidden; border-radius: var(--radius); }
+  .track { display: flex; transition: transform .6s cubic-bezier(.65,0,.35,1); }
+  .slide {
+    flex: 0 0 100%;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    background: var(--green-deep);
+  }
+  .slide picture { display: block; width: 100%; height: 100%; }
+  .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* заглушка, пока нет картинки */
+  .slide.placeholder {
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--green-deep), var(--bg-2));
+  }
+  .slide.placeholder::before {
+    content: ""; position: absolute; width: 38%; aspect-ratio: 1;
+    background: radial-gradient(circle at 35% 35%, #3d9a6c, #0f2a1e 75%);
+    animation: morph 12s ease-in-out infinite;
+  }
+  .slide.placeholder .ph-text { position: relative; color: var(--accent-2); font-size: 15px; text-align: center; padding: 0 20px; }
+  .slide-caption {
+    position: absolute; left: 24px; bottom: 24px;
+    padding: 10px 18px; border-radius: 999px;
+    background: rgba(7,11,9,.7); backdrop-filter: blur(8px);
+    font-size: 14px; color: var(--accent-2);
+  }
+  .car-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 54px; height: 54px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(7,11,9,.65); backdrop-filter: blur(8px);
+    color: var(--accent); font-size: 22px;
+    transition: background .25s, transform .25s;
+  }
+  .car-btn:hover { background: var(--accent); color: #062014; }
+  .car-btn.prev { left: 18px; }
+  .car-btn.next { right: 18px; }
+  .dots { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+  .dot {
+    width: 10px; height: 10px; border-radius: 999px; border: none; cursor: pointer;
+    background: rgba(143,227,180,.25); transition: width .3s, background .3s;
+  }
+  .dot.active { width: 32px; background: var(--accent); }
+
+  /* ===== КОНТАКТЫ ===== */
+  .contact-card {
+    position: relative; overflow: hidden;
+    padding: 70px 50px; border-radius: 40px;
+    background: linear-gradient(135deg, var(--green-deep), #0a1a12);
+    border: 1px solid rgba(143,227,180,.12);
+    text-align: center;
+  }
+  .contact-card::before {
+    content: ""; position: absolute; width: 340px; height: 340px; right: -100px; top: -120px;
+    background: radial-gradient(circle at 40% 40%, #2a7a55, transparent 70%);
+    animation: morph 14s ease-in-out infinite; opacity: .7;
+  }
+  .contact-card > * { position: relative; }
+  .contact-card .section-sub { margin: 0 auto 40px; }
+  .socials { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+
+  footer { padding: 40px 0; color: var(--muted); font-size: 14px; text-align: center; }
+
+  /* ===== АДАПТИВ ===== */
+  @media (max-width: 700px) {
+    .nav ul { display: none; }
+    section { padding: 70px 0; }
+    .car-btn { width: 44px; height: 44px; font-size: 18px; }
+    .contact-card { padding: 50px 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .blob, .slide.placeholder::before, .contact-card::before { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blobs">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
+<div class="grain"></div>
+
+<header>
+  <div class="container nav">
+    <a href="#" class="logo">ale<span>.</span>kseev</a>
+    <ul>
+      <li><a href="#works">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <span class="tag">Graphic Designer</span>
+      <h1>Design that spills off <em>the grid</em></h1>
+      <p>Posters, branding and bold visuals for brands that refuse to blend in. Loud ideas, clean execution.</p>
+      <div class="hero-actions">
+        <a href="#works" class="btn btn-primary">See my work</a>
+        <a href="#contact" class="btn btn-ghost">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="works">
+    <div class="container">
+      <h2 class="section-title">Selected work</h2>
+      <p class="section-sub">A few projects I'm proud of.</p>
+
+      <div class="carousel">
+        <div class="track-wrap">
+          <div class="track" id="track">
+            <!-- Add a slide: put an image in /works and copy one <div class="slide"> line -->
+            <div class="slide" data-caption="AirPods Max">
+              <img src="works/1.jpg" width="1920" height="1080" alt="AirPods Max poster, Sky Blue">
+            </div>
+            <div class="slide" data-caption="Spin. Bet. Win.">
+              <img src="works/2.jpg" width="1920" height="1080" loading="lazy" alt="Spin. Bet. Win. online roulette poster">
+            </div>
+            <div class="slide" data-caption="KEDEL">
+              <img src="works/3.jpg" width="1920" height="1080" loading="lazy" alt="KEDEL skate team poster">
+            </div>
+          </div>
+        </div>
+        <button class="car-btn prev" id="prev" aria-label="Previous project">←</button>
+        <button class="car-btn next" id="next" aria-label="Next project">→</button>
+        <div class="dots" id="dots"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="contact-card">
+        <h2 class="section-title">Got a project in mind?</h2>
+        <p class="section-sub">Drop me a message. Let's make something people can't scroll past.</p>
+        <div class="socials">
+          <a href="https://www.instagram.com/ale.kseev8/" target="_blank" rel="noopener" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+            Instagram
+          </a>
+          <a href="https://t.me/AliseinChains1" target="_blank" rel="noopener" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.6-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.1 1.8 11.6c-1-.3-1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3z"/></svg>
+            Telegram
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">© <span id="year"></span> ale.kseev. All rights reserved.</div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const track = document.getElementById('track');
+  const slides = [...track.children];
+  const dotsBox = document.getElementById('dots');
+  let index = 0;
+
+  // подписи + заглушки для картинок, которых ещё нет
+  slides.forEach((slide, i) => {
+    const caption = slide.dataset.caption;
+    if (caption) {
+      const c = document.createElement('div');
+      c.className = 'slide-caption';
+      c.textContent = caption;
+      slide.appendChild(c);
+    }
+    const img = slide.querySelector('img');
+    const showPlaceholder = () => {
+      if (slide.classList.contains('placeholder')) return;
+      img.remove();
+      slide.classList.add('placeholder');
+      const t = document.createElement('div');
+      t.className = 'ph-text';
+      t.textContent = 'Image coming soon';
+      slide.prepend(t);
+    };
+    if (img) {
+      img.addEventListener('error', showPlaceholder);
+      if (img.complete && img.naturalWidth === 0) showPlaceholder();
+    }
+
+    const dot = document.createElement('button');
+    dot.className = 'dot';
+    dot.setAttribute('aria-label', 'Project ' + (i + 1));
+    dot.addEventListener('click', () => { go(i); restart(); });
+    dotsBox.appendChild(dot);
+  });
+
+  function go(i) {
+    index = (i + slides.length) % slides.length;
+    track.style.transform = `translateX(-${index * 100}%)`;
+    [...dotsBox.children].forEach((d, n) => d.classList.toggle('active', n === index));
+  }
+
+  document.getElementById('prev').onclick = () => { go(index - 1); restart(); };
+  document.getElementById('next').onclick = () => { go(index + 1); restart(); };
+
+  // автопрокрутка каждые 5 секунд
+  let timer;
+  function restart() { clearInterval(timer); timer = setInterval(() => go(index + 1), 5000); }
+
+  // свайп на телефоне
+  let startX = null;
+  track.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive: true });
+  track.addEventListener('touchend', e => {
+    if (startX === null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) { go(index + (dx < 0 ? 1 : -1)); restart(); }
+    startX = null;
+  });
+
+  go(0);
+  restart();
+</script>
+</body>
+</html>
