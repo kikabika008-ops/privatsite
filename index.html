@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#070b09">
 <title>ale.kseev — Graphic Designer</title>
 <meta name="description" content="Graphic design portfolio: posters, branding and visuals that spill off the grid.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,15 +22,17 @@
     --radius: 28px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: "Manrope", system-ui, sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
   a { color: inherit; text-decoration: none; }
+  button { font: inherit; }
 
   /* ===== КЛЯКСЫ НА ФОНЕ ===== */
   .blobs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
@@ -148,6 +151,38 @@
     animation: morph 12s ease-in-out infinite;
   }
   .slide.placeholder .ph-text { position: relative; color: var(--accent-2); font-size: 15px; text-align: center; padding: 0 20px; }
+  .slide { cursor: zoom-in; }
+  .zoom-hint {
+    position: absolute; right: 16px; top: 16px;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(7,11,9,.6); color: var(--accent-2);
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .zoom-hint svg { width: 18px; height: 18px; }
+  .slide:hover .zoom-hint { opacity: 1; }
+  .car-title { display: none; }
+
+  /* ===== ПОЛНОЭКРАННЫЙ ПРОСМОТР ===== */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(4,7,5,.96);
+    display: flex; align-items: center; justify-content: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s;
+  }
+  .lightbox.open { opacity: 1; visibility: visible; }
+  .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .lb-close {
+    position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px;
+    width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(143,227,180,.15); color: var(--accent-2); font-size: 22px;
+  }
+  .lb-hint {
+    position: absolute; bottom: calc(18px + env(safe-area-inset-bottom)); left: 0; right: 0;
+    text-align: center; color: var(--muted); font-size: 13px; display: none;
+  }
+
   .slide-caption {
     position: absolute; left: 24px; bottom: 24px;
     padding: 10px 18px; border-radius: 999px;
@@ -164,12 +199,20 @@
   .car-btn:hover { background: var(--accent); color: #062014; }
   .car-btn.prev { left: 18px; }
   .car-btn.next { right: 18px; }
-  .dots { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+  .track { touch-action: pan-y; }
+  .dots { display: flex; justify-content: center; gap: 4px; margin-top: 16px; }
+  /* кнопка-точка 44px для пальца, видимая часть маленькая */
   .dot {
-    width: 10px; height: 10px; border-radius: 999px; border: none; cursor: pointer;
+    width: 28px; height: 44px; border: none; cursor: pointer; background: none;
+    display: flex; align-items: center; justify-content: center;
+    transition: width .3s;
+  }
+  .dot::before {
+    content: ""; width: 10px; height: 10px; border-radius: 999px;
     background: rgba(143,227,180,.25); transition: width .3s, background .3s;
   }
-  .dot.active { width: 32px; background: var(--accent); }
+  .dot.active { width: 44px; }
+  .dot.active::before { width: 32px; background: var(--accent); }
 
   /* ===== КОНТАКТЫ ===== */
   .contact-card {
@@ -192,10 +235,54 @@
 
   /* ===== АДАПТИВ ===== */
   @media (max-width: 700px) {
-    .nav ul { display: none; }
-    section { padding: 70px 0; }
-    .car-btn { width: 44px; height: 44px; font-size: 18px; }
-    .contact-card { padding: 50px 24px; }
+    .container { width: auto; margin: 0 20px; }
+    .nav { padding: 14px 0; }
+    .logo { font-size: 18px; }
+    .nav ul { gap: 18px; font-size: 14px; }
+    .nav ul li:first-child { display: none; }
+
+    .hero { min-height: calc(100svh - 60px); padding: 40px 0 60px; }
+    .hero .tag { margin-bottom: 20px; font-size: 13px; }
+    .hero h1 { font-size: clamp(36px, 11vw, 52px); letter-spacing: -.5px; }
+    .hero p { font-size: 16px; margin-top: 20px; }
+    .hero-actions { margin-top: 32px; }
+    .hero-actions .btn { flex: 1 1 140px; justify-content: center; }
+
+    section { padding: 64px 0; }
+    .section-sub { margin-bottom: 28px; }
+
+    /* карусель: картинка без наложений, управление под ней */
+    .track-wrap { border-radius: 18px; }
+    .slide-caption { display: none; }
+    .zoom-hint { opacity: 1; width: 34px; height: 34px; right: 10px; top: 10px; }
+    .zoom-hint svg { width: 15px; height: 15px; }
+    .car-controls {
+      display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    }
+    .car-title {
+      display: block; flex: 1; min-width: 0;
+      font-weight: 700; color: var(--accent-2); font-size: 15px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .car-btn {
+      position: static; transform: none; flex: none;
+      width: 48px; height: 48px; font-size: 18px;
+      background: rgba(143,227,180,.1); backdrop-filter: none;
+    }
+    .dots { margin-top: 4px; }
+
+    .contact-card { padding: 48px 22px; border-radius: 28px; }
+    .socials .btn { flex: 1 1 100%; justify-content: center; }
+    footer { padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); }
+    .lb-hint { display: block; }
+
+    /* лёгкие кляксы: без размытия и дрейфа, чтобы не грузить телефон */
+    .blob { filter: none; animation: morph 24s ease-in-out infinite; }
+    .blob.b1 { width: 340px; height: 340px; top: -100px; left: -140px; }
+    .blob.b2 { width: 300px; height: 300px; bottom: -100px; right: -120px; }
+    .blob.b3 { width: 160px; height: 160px; top: 55%; left: 60%; }
+    .blob.b4 { width: 110px; height: 110px; top: 22%; right: -20px; }
+    header { backdrop-filter: blur(10px); background: rgba(7,11,9,.8); }
   }
   @media (prefers-reduced-motion: reduce) {
     .blob, .slide.placeholder::before, .contact-card::before { animation: none; }
@@ -243,20 +330,23 @@
       <div class="carousel">
         <div class="track-wrap">
           <div class="track" id="track">
-            <!-- Add a slide: put an image in /works and copy one <div class="slide"> line -->
+            <!-- Add a slide: put a 1920px image in /works, a 1200px copy in /works/m, and copy one <div class="slide"> block -->
             <div class="slide" data-caption="AirPods Max">
-              <img src="works/airpods-max.jpg" width="1920" height="1080" alt="AirPods Max poster, Sky Blue">
+              <img src="works/airpods-max.jpg" srcset="works/m/airpods-max.jpg 1200w, works/airpods-max.jpg 1920w" sizes="(max-width: 700px) 100vw, 1120px" width="1920" height="1080" alt="AirPods Max poster, Sky Blue">
             </div>
             <div class="slide" data-caption="Spin. Bet. Win.">
-              <img src="works/spin-bet-win.jpg" width="1920" height="1080" loading="lazy" alt="Spin. Bet. Win. online roulette poster">
+              <img src="works/spin-bet-win.jpg" srcset="works/m/spin-bet-win.jpg 1200w, works/spin-bet-win.jpg 1920w" sizes="(max-width: 700px) 100vw, 1120px" width="1920" height="1080" loading="lazy" alt="Spin. Bet. Win. online roulette poster">
             </div>
             <div class="slide" data-caption="Kessel">
-              <img src="works/kessel.jpg" width="1920" height="1080" loading="lazy" alt="Kessel skate team poster">
+              <img src="works/kessel.jpg" srcset="works/m/kessel.jpg 1200w, works/kessel.jpg 1920w" sizes="(max-width: 700px) 100vw, 1120px" width="1920" height="1080" loading="lazy" alt="Kessel skate team poster">
             </div>
           </div>
         </div>
-        <button class="car-btn prev" id="prev" aria-label="Previous project">←</button>
-        <button class="car-btn next" id="next" aria-label="Next project">→</button>
+        <div class="car-controls">
+          <div class="car-title" id="carTitle" aria-live="polite"></div>
+          <button class="car-btn prev" id="prev" aria-label="Previous project">←</button>
+          <button class="car-btn next" id="next" aria-label="Next project">→</button>
+        </div>
         <div class="dots" id="dots"></div>
       </div>
     </div>
@@ -285,6 +375,12 @@
 <footer>
   <div class="container">© <span id="year"></span> ale.kseev. All rights reserved.</div>
 </footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Project preview">
+  <img id="lbImg" alt="">
+  <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+  <div class="lb-hint">Swipe to browse · rotate phone for a bigger view</div>
+</div>
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -318,6 +414,14 @@
       if (img.complete && img.naturalWidth === 0) showPlaceholder();
     }
 
+    if (img) {
+      const hint = document.createElement('div');
+      hint.className = 'zoom-hint';
+      hint.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+      slide.appendChild(hint);
+      slide.addEventListener('click', () => { if (!swiped) openLightbox(); });
+    }
+
     const dot = document.createElement('button');
     dot.className = 'dot';
     dot.setAttribute('aria-label', 'Project ' + (i + 1));
@@ -325,31 +429,82 @@
     dotsBox.appendChild(dot);
   });
 
+  const carTitle = document.getElementById('carTitle');
   function go(i) {
     index = (i + slides.length) % slides.length;
     track.style.transform = `translateX(-${index * 100}%)`;
     [...dotsBox.children].forEach((d, n) => d.classList.toggle('active', n === index));
+    carTitle.textContent = slides[index].dataset.caption || '';
+    if (lightbox.classList.contains('open')) showInLightbox();
   }
 
   document.getElementById('prev').onclick = () => { go(index - 1); restart(); };
   document.getElementById('next').onclick = () => { go(index + 1); restart(); };
 
-  // автопрокрутка каждые 5 секунд
-  let timer;
-  function restart() { clearInterval(timer); timer = setInterval(() => go(index + 1), 5000); }
+  // автопрокрутка: только когда карусель на экране и ничего не открыто
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timer, inView = false;
+  function restart() {
+    clearInterval(timer);
+    if (reduceMotion || !inView || document.hidden || lightbox.classList.contains('open')) return;
+    timer = setInterval(() => go(index + 1), 5000);
+  }
+  new IntersectionObserver(([e]) => { inView = e.isIntersecting; restart(); }, { threshold: .5 })
+    .observe(track);
+  document.addEventListener('visibilitychange', restart);
 
-  // свайп на телефоне
-  let startX = null;
-  track.addEventListener('touchstart', e => startX = e.touches[0].clientX, { passive: true });
-  track.addEventListener('touchend', e => {
-    if (startX === null) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40) { go(index + (dx < 0 ? 1 : -1)); restart(); }
-    startX = null;
+  // свайп: срабатывает только при горизонтальном движении, вертикальная прокрутка не мешает
+  let swiped = false;
+  function addSwipe(el) {
+    let sx = null, sy = null;
+    el.addEventListener('touchstart', e => {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiped = false;
+    }, { passive: true });
+    el.addEventListener('touchend', e => {
+      if (sx === null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        swiped = true;
+        go(index + (dx < 0 ? 1 : -1)); restart();
+        setTimeout(() => swiped = false, 350);
+      }
+      sx = null;
+    });
+  }
+  addSwipe(track);
+
+  // полноэкранный просмотр работы
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  function showInLightbox() {
+    const img = slides[index].querySelector('img');
+    if (!img) return;
+    lbImg.src = img.getAttribute('src');
+    lbImg.alt = img.alt;
+  }
+  function openLightbox() {
+    showInLightbox();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    restart();
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    restart();
+  }
+  document.getElementById('lbClose').onclick = closeLightbox;
+  lightbox.addEventListener('click', e => { if (e.target === lightbox && !swiped) closeLightbox(); });
+  addSwipe(lightbox);
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') go(index + 1);
+    if (e.key === 'ArrowLeft') go(index - 1);
   });
 
   go(0);
-  restart();
 </script>
 </body>
 </html>
