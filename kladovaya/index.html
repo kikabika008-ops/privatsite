@@ -270,14 +270,14 @@
       </button>
       <button class="stat" data-go="money">
         <div class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="3"/><path d="M2 10h20M16 15h2"/></svg></div>
-        <div class="v num" id="st-bal">0 ₽</div>
+        <div class="v num" id="st-bal">0 €</div>
         <div class="l">Баланс</div>
       </button>
     </div>
 
     <div class="budget">
       <div class="t">Бюджет</div>
-      <div class="big num" id="bd-left">0 ₽</div>
+      <div class="big num" id="bd-left">0 €</div>
       <div class="hint" id="bd-hint">Добавьте доходы и расходы — покажем, сколько осталось до конца месяца.</div>
       <div class="bar"><i id="bd-bar"></i></div>
       <button class="btn-light" data-go="money">Открыть
@@ -300,12 +300,12 @@
   <section class="tab" id="tab-money">
     <div class="hero">
       <div class="l">Баланс</div>
-      <div class="v num" id="m-balance">0 ₽</div>
+      <div class="v num" id="m-balance">0 €</div>
     </div>
     <div class="month">
-      <div><div class="l">Доходы</div><div class="v num" id="m-in" style="color:var(--income)">0 ₽</div></div>
-      <div><div class="l">Расходы</div><div class="v num" id="m-out" style="color:var(--danger)">0 ₽</div></div>
-      <div><div class="l">Остаток</div><div class="v num" id="m-left">0 ₽</div></div>
+      <div><div class="l">Доходы</div><div class="v num" id="m-in" style="color:var(--income)">0 €</div></div>
+      <div><div class="l">Расходы</div><div class="v num" id="m-out" style="color:var(--danger)">0 €</div></div>
+      <div><div class="l">Остаток</div><div class="v num" id="m-left">0 €</div></div>
     </div>
     <div class="section-title"><h2>Операции</h2><span>за 30 дней</span></div>
     <div class="list" id="ops-list"></div>
@@ -403,11 +403,11 @@
   /* ===== Утилиты ===== */
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const rub = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const money = n => rub.format(Math.round(n * 100) / 100).replace(/ ₽/, ' ₽');
-  const short = n => Math.abs(n) >= 1e6 ? (n / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' млн ₽'
-    : Math.abs(n) >= 1e5 ? Math.round(n / 1e3).toLocaleString('ru-RU') + ' тыс ₽'
-    : Math.round(n).toLocaleString('ru-RU') + '\u00a0₽';
+  const cur = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const money = n => cur.format(Math.round(n * 100) / 100).replace(/ €/, ' €');
+  const short = n => Math.abs(n) >= 1e6 ? (n / 1e6).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' млн €'
+    : Math.abs(n) >= 1e5 ? Math.round(n / 1e3).toLocaleString('ru-RU') + ' тыс €'
+    : Math.round(n).toLocaleString('ru-RU') + '\u00a0€';
   const qtyFmt = n => (Math.round(n * 1000) / 1000).toLocaleString('ru-RU');
   const parseNum = v => parseFloat(String(v).replace(/\s/g, '').replace(',', '.'));
 
@@ -666,7 +666,7 @@
       '<h3>Новая операция</h3>' +
       '<form id="f-money" novalidate>' +
         '<div class="field"><div class="seg"><button type="button" data-type="out" class="on">Расход</button><button type="button" data-type="in">Доход</button></div></div>' +
-        '<div class="field"><label>Сумма, ₽</label><input name="amount" inputmode="decimal" placeholder="0" autocomplete="off"></div>' +
+        '<div class="field"><label>Сумма, €</label><input name="amount" inputmode="decimal" placeholder="0" autocomplete="off"></div>' +
         '<div class="field"><label>Категория</label><div class="chips" id="chips">' + chips() + '</div></div>' +
         '<div class="field"><label>Комментарий</label><input name="note" maxlength="80" placeholder="Необязательно" autocomplete="off"></div>' +
         '<div class="err" id="err"></div>' +
