@@ -400,6 +400,71 @@
   }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+  /* ===== Синхронизация через Telegram CloudStorage =====
+     Каждый продукт и каждая операция — отдельный ключ (p_<id> / o_<id>),
+     так записи с разных устройств объединяются, а лимит 4 КБ на значение не мешает.
+     localStorage остаётся быстрой локальной копией. */
+  const cloud = (() => {
+    try { if (inTg && tg.CloudStorage && tg.isVersionAtLeast('6.9')) return tg.CloudStorage; } catch (e) {}
+    return null;
+  })();
+  const PENDING = 'kladovaya:pending', MIGRATED = 'kladovaya:migrated';
+  const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  let pending = lsGet(PENDING, {});      // ключ → JSON-строка или null (удалить)
+  let flushT = null, flushing = false;
+  const cbp = (fn, ...args) => new Promise((res, rej) => fn.call(cloud, ...args, (err, val) => err ? rej(err) : res(val)));
+
+  function queue(key, value) {
+    pending[key] = value == null ? null : JSON.stringify(value);
+    lsSet(PENDING, pending);
+    clearTimeout(flushT); flushT = setTimeout(flush, 500);
+  }
+  const putP = p => queue('p_' + p.id, p);
+  const putO = o => queue('o_' + o.id, o);
+  const delKey = k => queue(k, null);
+
+  async function flush() {
+    if (!cloud || flushing) return;
+    flushing = true;
+    try {
+      const keys = Object.keys(pending);
+      const dels = keys.filter(k => pending[k] === null);
+      if (dels.length) { await cbp(cloud.removeItems, dels); dels.forEach(k => { if (pending[k] === null) delete pending[k]; }); }
+      for (const k of keys.filter(k => pending[k] !== null && pending[k] !== undefined)) {
+        const v = pending[k];
+        await cbp(cloud.setItem, k, v);
+        if (pending[k] === v) delete pending[k];
+      }
+      lsSet(PENDING, pending);
+    } catch (e) {
+      // нет сети — попробуем позже, данные остаются в очереди
+    } finally { flushing = false; }
+  }
+
+  async function pull() {
+    if (!cloud) return;
+    try {
+      if (!lsGet(MIGRATED, false)) {          // первый запуск с облаком: отправить то, что уже есть на устройстве
+        state.products.forEach(putP); state.ops.forEach(putO);
+        await flush();
+        if (Object.keys(pending).length) return;
+        lsSet(MIGRATED, true);
+      } else await flush();
+      const keys = (await cbp(cloud.getKeys)).filter(k => /^[po]_/.test(k));
+      const items = {};
+      for (let i = 0; i < keys.length; i += 50) Object.assign(items, await cbp(cloud.getItems, keys.slice(i, i + 50)));
+      for (const k in pending) { if (pending[k] === null) delete items[k]; else items[k] = pending[k]; }
+      const products = [], ops = [];
+      for (const k in items) {
+        try { const v = JSON.parse(items[k]); if (!v || !v.id) continue; (k[0] === 'p' ? products : ops).push(v); } catch (e) {}
+      }
+      state.products = products; state.ops = ops;
+      save(); render();
+      if (keys.length > 950) toast('Облако почти заполнено — удалите старые записи');
+    } catch (e) {}
+  }
+
   /* ===== Утилиты ===== */
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -594,11 +659,12 @@
     const id = btn.closest('.item').dataset.id;
     const p = state.products.find(x => x.id === id); if (!p) return;
     const step = STEP[p.unit] || 1;
-    if (btn.dataset.act === 'inc') { p.qty = Math.round((p.qty + step) * 1000) / 1000; haptic.soft(); }
-    else if (btn.dataset.act === 'dec') { p.qty = Math.max(0, Math.round((p.qty - step) * 1000) / 1000); haptic.soft(); }
+    if (btn.dataset.act === 'inc') { p.qty = Math.round((p.qty + step) * 1000) / 1000; putP(p); haptic.soft(); }
+    else if (btn.dataset.act === 'dec') { p.qty = Math.max(0, Math.round((p.qty - step) * 1000) / 1000); putP(p); haptic.soft(); }
     else if (btn.dataset.act === 'del-p') {
       if (!(await confirmAsk('Удалить «' + p.name + '»?'))) return;
       state.products = state.products.filter(x => x.id !== id);
+      delKey('p_' + id);
       haptic.ok(); toast('Продукт удалён');
     }
     save(); render();
@@ -609,6 +675,7 @@
     const id = btn.closest('.item').dataset.id;
     if (!(await confirmAsk('Удалить операцию?'))) return;
     state.ops = state.ops.filter(x => x.id !== id);
+    delKey('o_' + id);
     save(); render(); haptic.ok(); toast('Операция удалена');
   });
 
@@ -652,7 +719,8 @@
           const qty = parseNum(f.qty.value);
           if (!name) return fail('Введите название');
           if (!(qty > 0)) return fail('Количество должно быть больше нуля');
-          state.products.push({ id: uid(), name, qty, unit: f.unit.value, expiry: f.expiry.value || '', added: Date.now() });
+          const p = { id: uid(), name, qty, unit: f.unit.value, expiry: f.expiry.value || '', added: Date.now() };
+          state.products.push(p); putP(p);
           save(); render(); closeSheet(); haptic.ok(); toast('Добавлено: ' + name);
         });
       }
@@ -688,7 +756,8 @@
           e.preventDefault();
           const amount = Math.round(parseNum(f.amount.value) * 100) / 100;
           if (!(amount > 0)) return fail('Введите сумму больше нуля');
-          state.ops.push({ id: uid(), type, amount, cat, note: f.note.value.trim(), date: Date.now() });
+          const o = { id: uid(), type, amount, cat, note: f.note.value.trim(), date: Date.now() };
+          state.ops.push(o); putO(o);
           save(); render(); closeSheet(); haptic.ok(); toast(type === 'in' ? 'Доход добавлен' : 'Расход добавлен');
         });
       }
@@ -716,9 +785,11 @@
   });
 
   // Обновлять «сегодня» и сроки, если приложение долго открыто или вернулись в него
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+  // и подтягивать изменения с других устройств
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); else { render(); pull(); } });
 
   render();
+  pull();
 })();
 </script>
 </body>
